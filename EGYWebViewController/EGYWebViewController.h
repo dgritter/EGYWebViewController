@@ -41,5 +41,5 @@
 #endif
 
 // Fixing @selector warning.
-- (void)doneButtonClicked:(id)sender;
+- (void)doneButtonClicked:(UIBarButtonItem*)sender;
 @end

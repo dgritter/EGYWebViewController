@@ -15,9 +15,9 @@
 
 @property (nonatomic, strong, readonly) UIBarButtonItem *backBarButtonItem;
 @property (nonatomic, strong, readonly) UIBarButtonItem *forwardBarButtonItem;
-@property (nonatomic, strong, readonly) UIBarButtonItem *refreshBarButtonItem;
 @property (nonatomic, strong, readonly) UIBarButtonItem *stopBarButtonItem;
 @property (nonatomic, strong, readonly) UIBarButtonItem *actionBarButtonItem;
+@property (nonatomic, strong, readonly) UIBarButtonItem *doneBarButtonItem;
 
 @property (nonatomic, strong) UIWebView *mainWebView;
 
@@ -52,14 +52,14 @@
 
 
 @synthesize URL, mainWebView;
-@synthesize backBarButtonItem, forwardBarButtonItem, refreshBarButtonItem, stopBarButtonItem, actionBarButtonItem;
+@synthesize backBarButtonItem, forwardBarButtonItem, stopBarButtonItem, actionBarButtonItem, doneBarButtonItem;
 
 #pragma mark - setters and getters
 
 - (UIBarButtonItem *)backBarButtonItem {
     
     if (!backBarButtonItem) {
-        backBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"EGYWebViewController.bundle/iPhone/back"] style:UIBarButtonItemStylePlain target:self action:@selector(goBackClicked:)];
+        backBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"back"] style:UIBarButtonItemStylePlain target:self action:@selector(goBackClicked:)];
         backBarButtonItem.imageInsets = UIEdgeInsetsMake(2.0f, 0.0f, -2.0f, 0.0f);
         backBarButtonItem.width = 18.0f;
     }
@@ -69,20 +69,11 @@
 - (UIBarButtonItem *)forwardBarButtonItem {
     
     if (!forwardBarButtonItem) {
-        forwardBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"EGYWebViewController.bundle/iPhone/forward"] style:UIBarButtonItemStylePlain target:self action:@selector(goForwardClicked:)];
+        forwardBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"forward"] style:UIBarButtonItemStylePlain target:self action:@selector(goForwardClicked:)];
         forwardBarButtonItem.imageInsets = UIEdgeInsetsMake(2.0f, 0.0f, -2.0f, 0.0f);
         forwardBarButtonItem.width = 18.0f;
     }
     return forwardBarButtonItem;
-}
-
-- (UIBarButtonItem *)refreshBarButtonItem {
-    
-    if (!refreshBarButtonItem) {
-        refreshBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(reloadClicked:)];
-    }
-    
-    return refreshBarButtonItem;
 }
 
 - (UIBarButtonItem *)stopBarButtonItem {
@@ -99,6 +90,16 @@
         actionBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonClicked:)];
     }
     return actionBarButtonItem;
+}
+
+- (UIBarButtonItem *)doneBarButtonItem {
+    
+    if(!doneBarButtonItem) {
+        doneBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneButtonClicked:)];
+    }
+    
+    return doneBarButtonItem;
+    
 }
 
 
@@ -171,7 +172,6 @@
     _mainWebKitView = nil;
     backBarButtonItem = nil;
     forwardBarButtonItem = nil;
-    refreshBarButtonItem = nil;
     stopBarButtonItem = nil;
     actionBarButtonItem = nil;
 }
@@ -223,21 +223,16 @@
 #pragma mark - Toolbar
 
 - (void)updateToolbarItems {
-    UIBarButtonItem *refreshStopBarButtonItem;
     
     // TODO :: Should use KVO for webKit
     if (_mainWebKitView) {
         self.backBarButtonItem.enabled    = self.mainWebKitView.canGoBack;
         self.forwardBarButtonItem.enabled = self.mainWebKitView.canGoForward;
         self.actionBarButtonItem.enabled  = !self.mainWebKitView.isLoading;
-        refreshStopBarButtonItem          = self.mainWebKitView.isLoading ?
-        self.stopBarButtonItem : self.refreshBarButtonItem;
     } else {
         self.backBarButtonItem.enabled    = self.mainWebView.canGoBack;
         self.forwardBarButtonItem.enabled = self.mainWebView.canGoForward;
         self.actionBarButtonItem.enabled  = !self.mainWebView.isLoading;
-        refreshStopBarButtonItem          = self.mainWebView.isLoading ?
-        self.stopBarButtonItem : self.refreshBarButtonItem;
     }
     
     UIBarButtonItem *fixedSpace    = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace
@@ -247,154 +242,97 @@
     UIBarButtonItem *flexibleSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
                                                                                    target:nil
                                                                                    action:nil];
-    if (floor(NSFoundationVersionNumber) <= NSFoundationVersionNumber_iOS_6_1) {
-        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-            NSArray *items;
-            CGFloat toolbarWidth = 250.0f;
-            
-            if(self.URL == 0) {
-                toolbarWidth = 200.0f;
-                items = [NSArray arrayWithObjects:
-                         fixedSpace,
-                         refreshStopBarButtonItem,
-                         flexibleSpace,
-                         self.backBarButtonItem,
-                         flexibleSpace,
-                         self.forwardBarButtonItem,
-                         fixedSpace,
-                         nil];
-            } else {
-                items = [NSArray arrayWithObjects:
-                         fixedSpace,
-                         refreshStopBarButtonItem,
-                         flexibleSpace,
-                         self.backBarButtonItem,
-                         flexibleSpace,
-                         self.forwardBarButtonItem,
-                         flexibleSpace,
-                         self.actionBarButtonItem,
-                         fixedSpace,
-                         nil];
-            }
-            
-            UIToolbar *toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0.0f, 0.0f, toolbarWidth, 44.0f)];
-            toolbar.items = items;
-            toolbar.barStyle = self.navigationController.navigationBar.barStyle;
-            toolbar.tintColor = self.navigationController.navigationBar.tintColor;
-            self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:toolbar];
+
+    
+    // for iPad, we will build a left toolbar with any left button item plus back button
+    // for iPhone, the toolbar will be placed bottom screen and the navbar left button can remain as is
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        NSArray *items;
+        CGFloat toolbarWidth = 200.0f;
+        
+        if(self.URL == 0) {
+            items = [NSArray arrayWithObjects:
+                     fixedSpace,
+                     self.forwardBarButtonItem,
+                     fixedSpace,
+                     nil];
         } else {
-            NSArray *items;
-            
-            if(self.URL == 0) {
-                items = [NSArray arrayWithObjects:
-                         flexibleSpace,
-                         self.backBarButtonItem,
-                         flexibleSpace,
-                         self.forwardBarButtonItem,
-                         flexibleSpace,
-                         refreshStopBarButtonItem,
-                         flexibleSpace,
-                         nil];
-            } else {
-                items = [NSArray arrayWithObjects:
-                         fixedSpace,
-                         self.backBarButtonItem,
-                         flexibleSpace,
-                         self.forwardBarButtonItem,
-                         flexibleSpace,
-                         refreshStopBarButtonItem,
-                         flexibleSpace,
-                         self.actionBarButtonItem,
-                         fixedSpace,
-                         nil];
-            }
-            
-            self.navigationController.toolbar.barStyle = self.navigationController.navigationBar.barStyle;
-            self.navigationController.toolbar.tintColor = self.navigationController.navigationBar.tintColor;
-            self.toolbarItems = items;
+            items = [NSArray arrayWithObjects:
+                     fixedSpace,
+                     self.forwardBarButtonItem,
+                     flexibleSpace,
+                     self.actionBarButtonItem,
+                     fixedSpace,
+                     nil];
         }
+        
+        UIToolbar *toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0.0f, 0.0f, toolbarWidth, 44.0f)];
+        toolbar.items = items;
+        toolbar.barStyle = self.navigationController.navigationBar.barStyle;
+        toolbar.barTintColor = self.navigationController.navigationBar.barTintColor;
+        toolbar.tintColor = self.navigationController.navigationBar.tintColor;
+        toolbar.translucent = YES;
+        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:toolbar];
+        
+        NSArray* leftItems = [NSArray arrayWithObjects:
+                         fixedSpace,
+                         self.doneBarButtonItem,
+                         flexibleSpace,
+                         self.backBarButtonItem,
+                         fixedSpace,
+                         nil];
+        
+        UIToolbar *leftToolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0.0f, 0.0f, toolbarWidth, 44.0f)];
+        leftToolbar.items = leftItems;
+        leftToolbar.barStyle = self.navigationController.navigationBar.barStyle;
+        leftToolbar.barTintColor = self.navigationController.navigationBar.barTintColor;
+        leftToolbar.tintColor = self.navigationController.navigationBar.tintColor;
+        leftToolbar.translucent = YES;
+        self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:leftToolbar];
+    
     } else {
-        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-            NSArray *items;
-            CGFloat toolbarWidth = 250.0f;
-            
-            if(self.URL == 0) {
-                toolbarWidth = 200.0f;
-                items = [NSArray arrayWithObjects:
-                         fixedSpace,
-                         refreshStopBarButtonItem,
-                         flexibleSpace,
-                         self.backBarButtonItem,
-                         flexibleSpace,
-                         self.forwardBarButtonItem,
-                         fixedSpace,
-                         nil];
-            } else {
-                items = [NSArray arrayWithObjects:
-                         fixedSpace,
-                         refreshStopBarButtonItem,
-                         flexibleSpace,
-                         self.backBarButtonItem,
-                         flexibleSpace,
-                         self.forwardBarButtonItem,
-                         flexibleSpace,
-                         self.actionBarButtonItem,
-                         fixedSpace,
-                         nil];
-            }
-            
-            UIToolbar *toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0.0f, 0.0f, toolbarWidth, 44.0f)];
-            toolbar.items = items;
-            toolbar.barStyle = self.navigationController.navigationBar.barStyle;
-            toolbar.barTintColor = self.navigationController.navigationBar.barTintColor;
-            toolbar.tintColor = self.navigationController.navigationBar.tintColor;
-            toolbar.translucent = YES;
-            self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:toolbar];
+        NSArray *items;
+        
+        if(self.URL == 0) {
+            items = [NSArray arrayWithObjects:
+                     flexibleSpace,
+                     self.backBarButtonItem,
+                     flexibleSpace,
+                     self.forwardBarButtonItem,
+                     flexibleSpace,
+                     nil];
         } else {
-            NSArray *items;
-            
-            if(self.URL == 0) {
-                items = [NSArray arrayWithObjects:
-                         flexibleSpace,
-                         self.backBarButtonItem,
-                         flexibleSpace,
-                         self.forwardBarButtonItem,
-                         flexibleSpace,
-                         refreshStopBarButtonItem,
-                         flexibleSpace,
-                         nil];
-            } else {
-                items = [NSArray arrayWithObjects:
-                         fixedSpace,
-                         self.backBarButtonItem,
-                         flexibleSpace,
-                         self.forwardBarButtonItem,
-                         flexibleSpace,
-                         refreshStopBarButtonItem,
-                         flexibleSpace,
-                         self.actionBarButtonItem,
-                         fixedSpace,
-                         nil];
-            }
-            
-            self.navigationController.toolbar.barStyle = self.navigationController.navigationBar.barStyle;
-            self.navigationController.toolbar.barTintColor = self.navigationController.navigationBar.barTintColor;
-            self.navigationController.toolbar.tintColor = self.navigationController.navigationBar.tintColor;
-            self.navigationController.toolbar.translucent = YES;
-            self.toolbarItems = items;
+            items = [NSArray arrayWithObjects:
+                     fixedSpace,
+                     self.backBarButtonItem,
+                     flexibleSpace,
+                     self.forwardBarButtonItem,
+                     flexibleSpace,
+                     self.actionBarButtonItem,
+                     fixedSpace,
+                     nil];
         }
+        
+        self.navigationController.toolbar.barStyle = self.navigationController.navigationBar.barStyle;
+        self.navigationController.toolbar.barTintColor = self.navigationController.navigationBar.barTintColor;
+        self.navigationController.toolbar.tintColor = self.navigationController.navigationBar.tintColor;
+        self.navigationController.toolbar.translucent = YES;
+        self.toolbarItems = items;
     }
+
 }
 
 - (void) updateTitleWithTitle:(NSString*) title domain:(NSString*) domain {
     
+    UIColor* tintColor = [UIColor blackColor];
+
     NSDictionary *titleAttribs = @{
-                                   NSForegroundColorAttributeName: [UIColor whiteColor],
+                                   NSForegroundColorAttributeName: tintColor,
                                    NSFontAttributeName: [UIFont boldSystemFontOfSize:13]
                                    };
     
     NSDictionary *domainAttribs = @{
-                                    NSForegroundColorAttributeName: [UIColor whiteColor],
+                                    NSForegroundColorAttributeName: tintColor,
                                     NSFontAttributeName: [UIFont systemFontOfSize:11]
                                     };
     
