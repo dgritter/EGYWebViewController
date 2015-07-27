@@ -25,9 +25,9 @@
 @property (nonatomic, strong) WKWebView *mainWebKitView;
 @property (nonatomic, assign, readwrite) BOOL usingWebkit;
 #else
-    // Leaving this and lettingit be null will prevent
-    // needing macros for every peice of code that can
-    // optionally use webkit.
+// Leaving this and lettingit be null will prevent
+// needing macros for every peice of code that can
+// optionally use webkit.
 @property (nonatomic, strong) id mainWebKitView;
 #endif
 
@@ -61,7 +61,7 @@
     if (!backBarButtonItem) {
         backBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"EGYWebViewController.bundle/iPhone/back"] style:UIBarButtonItemStylePlain target:self action:@selector(goBackClicked:)];
         backBarButtonItem.imageInsets = UIEdgeInsetsMake(2.0f, 0.0f, -2.0f, 0.0f);
-		backBarButtonItem.width = 18.0f;
+        backBarButtonItem.width = 18.0f;
     }
     return backBarButtonItem;
 }
@@ -71,7 +71,7 @@
     if (!forwardBarButtonItem) {
         forwardBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"EGYWebViewController.bundle/iPhone/forward"] style:UIBarButtonItemStylePlain target:self action:@selector(goForwardClicked:)];
         forwardBarButtonItem.imageInsets = UIEdgeInsetsMake(2.0f, 0.0f, -2.0f, 0.0f);
-		forwardBarButtonItem.width = 18.0f;
+        forwardBarButtonItem.width = 18.0f;
     }
     return forwardBarButtonItem;
 }
@@ -124,7 +124,7 @@
         _usingWebkit = usingWebkit;
 #endif
     }
-
+    
     return self;
 }
 
@@ -139,8 +139,8 @@
 #pragma mark - View lifecycle
 
 - (void)loadView {
-        // Use of macro here because class is use explicetely
-        // elsewhere code just nil checks _mainWebKitView
+    // Use of macro here because class is use explicetely
+    // elsewhere code just nil checks _mainWebKitView
 #ifdef __IPHONE_8_0
     if ( self.usingWebkit && NSClassFromString(@"WKWebView") != nil ) {
         WKWebViewConfiguration *config = [WKWebViewConfiguration new];
@@ -161,7 +161,7 @@
 }
 
 - (void)viewDidLoad {
-	[super viewDidLoad];
+    [super viewDidLoad];
     [self updateToolbarItems];
 }
 
@@ -176,39 +176,11 @@
     actionBarButtonItem = nil;
 }
 
-//- (void)viewDidAppear:(BOOL)animated {
-//    [super viewDidAppear:YES];
-//    
-//    if (floor(NSFoundationVersionNumber) <= NSFoundationVersionNumber_iOS_6_1) {
-//#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
-//        if (self.barsTintColor != nil) {
-//            // Checked if not nil
-//            self.navigationController.navigationBar.tintColor = self.barsTintColor;
-//            self.navigationController.toolbar.tintColor = self.barsTintColor;
-//        } else if (self.barItemsTintColor != nil) {
-//            self.navigationItem.backBarButtonItem.tintColor = self.barItemsTintColor;
-//            [self.navigationController.navigationBar setTitleTextAttributes:[NSDictionary dictionaryWithObject:self.barItemsTintColor forKey:UITextAttributeTextColor]];
-//        }
-//#endif
-//    } else {
-//        if (self.barsTintColor != nil) {
-//            self.navigationController.navigationBar.barTintColor = self.barsTintColor;
-//            self.navigationController.toolbar.barTintColor = self.barsTintColor;
-//            self.navigationController.toolbar.translucent = NO;
-//        } else if (self.barItemsTintColor != nil) {
-//            self.navigationController.toolbar.tintColor = self.barItemsTintColor;
-//            self.navigationController.navigationItem.backBarButtonItem.tintColor = self.barItemsTintColor;
-//            self.navigationController.navigationBar.tintColor = self.barItemsTintColor;
-//            [self.navigationController.navigationBar setTitleTextAttributes:[NSDictionary dictionaryWithObject:self.barItemsTintColor forKey:NSForegroundColorAttributeName]];
-//        }
-//    }
-//}
-
 - (void)viewWillAppear:(BOOL)animated {
-    NSAssert(self.navigationController, @"EGYWebViewController needs to be contained in a UINavigationController. If you are presenting EGYWebViewController modally, use EGYWebViewController instead.");
+    NSAssert(self.navigationController, @"EGYWebViewController needs to be contained in a UINavigationController. If you are presenting EGYWebViewController modally, use EGYModalWebViewController instead.");
     
-	[super viewWillAppear:animated];
-	
+    [super viewWillAppear:animated];
+    
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
         [self.navigationController setToolbarHidden:NO animated:animated];
     }
@@ -252,25 +224,25 @@
 
 - (void)updateToolbarItems {
     UIBarButtonItem *refreshStopBarButtonItem;
-
-        // TODO :: Should use KVO for webKit
+    
+    // TODO :: Should use KVO for webKit
     if (_mainWebKitView) {
         self.backBarButtonItem.enabled    = self.mainWebKitView.canGoBack;
         self.forwardBarButtonItem.enabled = self.mainWebKitView.canGoForward;
         self.actionBarButtonItem.enabled  = !self.mainWebKitView.isLoading;
         refreshStopBarButtonItem          = self.mainWebKitView.isLoading ?
-                                            self.stopBarButtonItem : self.refreshBarButtonItem;
+        self.stopBarButtonItem : self.refreshBarButtonItem;
     } else {
         self.backBarButtonItem.enabled    = self.mainWebView.canGoBack;
         self.forwardBarButtonItem.enabled = self.mainWebView.canGoForward;
         self.actionBarButtonItem.enabled  = !self.mainWebView.isLoading;
         refreshStopBarButtonItem          = self.mainWebView.isLoading ?
-                                            self.stopBarButtonItem : self.refreshBarButtonItem;
+        self.stopBarButtonItem : self.refreshBarButtonItem;
     }
     
     UIBarButtonItem *fixedSpace    = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace
-                                                                                target:nil
-                                                                                action:nil];
+                                                                                   target:nil
+                                                                                   action:nil];
     fixedSpace.width               = 5.0f;
     UIBarButtonItem *flexibleSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
                                                                                    target:nil
@@ -376,7 +348,7 @@
             toolbar.barStyle = self.navigationController.navigationBar.barStyle;
             toolbar.barTintColor = self.navigationController.navigationBar.barTintColor;
             toolbar.tintColor = self.navigationController.navigationBar.tintColor;
-            toolbar.translucent = NO;
+            toolbar.translucent = YES;
             self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:toolbar];
         } else {
             NSArray *items;
@@ -408,30 +380,58 @@
             self.navigationController.toolbar.barStyle = self.navigationController.navigationBar.barStyle;
             self.navigationController.toolbar.barTintColor = self.navigationController.navigationBar.barTintColor;
             self.navigationController.toolbar.tintColor = self.navigationController.navigationBar.tintColor;
-            self.navigationController.toolbar.translucent = NO;
+            self.navigationController.toolbar.translucent = YES;
             self.toolbarItems = items;
         }
     }
+}
+
+- (void) updateTitleWithTitle:(NSString*) title domain:(NSString*) domain {
+    
+    NSDictionary *titleAttribs = @{
+                                   NSForegroundColorAttributeName: [UIColor whiteColor],
+                                   NSFontAttributeName: [UIFont boldSystemFontOfSize:13]
+                                   };
+    
+    NSDictionary *domainAttribs = @{
+                                    NSForegroundColorAttributeName: [UIColor whiteColor],
+                                    NSFontAttributeName: [UIFont systemFontOfSize:11]
+                                    };
+    
+    NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:[title stringByAppendingString:@"\n"] attributes:titleAttribs];
+    [attributedText appendAttributedString:[[NSMutableAttributedString alloc] initWithString:domain attributes:domainAttribs]];
+    
+    UILabel* titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 320, 44)];
+    titleLabel.backgroundColor = [UIColor clearColor];
+    titleLabel.numberOfLines = 2;
+    titleLabel.textAlignment = NSTextAlignmentCenter;
+    titleLabel.attributedText = attributedText;
+    
+    self.navigationItem.titleView = titleLabel;
 }
 
 #pragma mark -
 #pragma mark UIWebViewDelegate
 
 - (void)webViewDidStartLoad:(UIWebView *)webView {
-	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
     [self updateToolbarItems];
 }
 
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
-	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
     
-    self.navigationItem.title = [webView stringByEvaluatingJavaScriptFromString:@"document.title"];
+    NSString* title = [webView stringByEvaluatingJavaScriptFromString:@"document.title"];
+    NSString* domain = webView.request.URL.host;
+    
+    [self updateTitleWithTitle:title domain:domain];
+    
     [self updateToolbarItems];
 }
 
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
-	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
     [self updateToolbarItems];
 }
 
@@ -450,12 +450,18 @@
 - (void)webView:(WKWebView *)webView didCommitNavigation:(WKNavigation *)navigation {
     [self updateToolbarItems];
 }
+
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
-
-    self.navigationItem.title = webView.title;
+    
+    NSString* title = webView.title;
+    NSString* domain = webView.URL.host;
+    
+    [self updateTitleWithTitle:title domain:domain];
+    
     [self updateToolbarItems];
 }
+
 - (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error {
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
     [self updateToolbarItems];
@@ -514,7 +520,7 @@
         NSLog(@"No url was found");
         return;
     }
-
+    
     // activities
     TUSafariActivity     *safariActivity     = [[TUSafariActivity alloc] init];
     ARChromeActivity     *chromeActivity     = [[ARChromeActivity alloc] init];
@@ -528,6 +534,8 @@
     // UIActivityViewController
     UIActivityViewController *activityView = [[UIActivityViewController alloc] initWithActivityItems:activityItems
                                                                                applicationActivities:activities];
+    
+    activityView.popoverPresentationController.barButtonItem = self.actionBarButtonItem;
     
     /* Exclude default activity types for demo.
      activityView.excludedActivityTypes = @[

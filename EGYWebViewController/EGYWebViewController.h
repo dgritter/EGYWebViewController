@@ -32,14 +32,11 @@
 - (instancetype)initWithAddress:(NSString*)urlString;
 - (instancetype)initWithURL:(NSURL*)URL;
 
-// Delete This error after you see the deprecate message ;)
-// #error EGYWebViewController don't use the deprecated items (barsTintColor & barItemsTintColor) when you pushing it through UINavigationController.
-
-@property (nonatomic, strong) UIColor *barsTintColor    __attribute__((deprecated("not finished yet barsTintColor")));
-@property (nonatomic, strong) UIColor *barItemsTintColor __attribute__((deprecated("not finished yet barItemsTintColor")));
+@property (nonatomic, strong) UIColor *barsTintColor;
+@property (nonatomic, strong) UIColor *barItemsTintColor;
 
 #ifdef __IPHONE_8_0
-    // Option to use webkit over UIWebview. Default YES
+// Option to use webkit over UIWebview. Default YES
 @property (nonatomic, assign, readonly) BOOL usingWebkit;
 #endif
 
