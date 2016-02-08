@@ -337,7 +337,7 @@
                                     };
     
     NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:[title stringByAppendingString:@"\n"] attributes:titleAttribs];
-    [attributedText appendAttributedString:[[NSMutableAttributedString alloc] initWithString:domain attributes:domainAttribs]];
+    [attributedText appendAttributedString:[[NSMutableAttributedString alloc] initWithString:(domain ? domain : @"") attributes:domainAttribs]];
     
     UILabel* titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 320, 44)];
     titleLabel.backgroundColor = [UIColor clearColor];
