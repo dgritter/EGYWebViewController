@@ -32,6 +32,8 @@
 - (instancetype)initWithAddress:(NSString*)urlString;
 - (instancetype)initWithURL:(NSURL*)URL;
 
+- (void)loadURL:(NSURL*)URL;
+
 @property (nonatomic, strong) UIColor *barsTintColor;
 @property (nonatomic, strong) UIColor *barItemsTintColor;
 
